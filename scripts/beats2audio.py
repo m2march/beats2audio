@@ -7,6 +7,8 @@ import gflags
 import magic
 import os
 import sys
+import tempfile
+import pkg_resources
 
 import tht.midi as midi
 import numpy as np
@@ -25,17 +27,18 @@ gflags.DEFINE_integer('click_gain_delta', 0,
 
 gflags.DEFINE_integer('audio_gain_delta', 0,
                       'Gain delta for click track (in dB).',
-                      short_name='a')
+                      short_name='g')
 
-gflags.DEFINE_bool('split_beats', False,
-                   'Whether to output a split audio file with just the beats.',
-                   short_name='s')
+gflags.DEFINE_string('audio_file', None,
+                     ('Audio file to add as a background track '
+                      '(may be wav, mp3 or mid)'),
+                     short_name='a')
 
 FLAGS = gflags.FLAGS
 
 
-CLICK_FILE = os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                          'click.mp3')
+CLICK_FILE = pkg_resources.resource_filename(__name__, 'click.mp3')
+
 CLICK_OFFSET = 0
 
 
@@ -61,10 +64,11 @@ class open_audio:
     def __enter__(self):
         if magic.from_file(self.audio_file, mime=True) == 'audio/midi':
             print 'Midi found. Converting to wav.'
-            call(['timidity', '-Ow', '-o',
-                  self.TMP_WAV_FILENAME, self.audio_file])
-            self.is_midi = True
-            return AudioSegment.from_file(self.TMP_WAV_FILENAME)
+            with tempfile.NamedTemporaryFile('rw') as temp:
+                call(['timidity', '-Ow', '-o',
+                      temp.name, self.audio_file])
+                self.is_midi = True
+                return AudioSegment.from_file(temp.name)
         else:
             self.is_midi = False
             return AudioSegment.from_file(self.audio_file)
@@ -102,10 +106,9 @@ def create_audio_with_beats(audio_file, beats, output_file,
         beats = adjust_beats_if_midi(audio_file, beats)
 
         audio_with_click = base_audio
-        if not split_beats:
-            for beat in beats:
-                audio_with_click = audio_with_click.overlay(
-                    click, position=beat - CLICK_OFFSET)
+        for beat in beats:
+            audio_with_click = audio_with_click.overlay(
+                click, position=beat - CLICK_OFFSET)
         print 'Exporting to', output_file
         audio_with_click.export(output_file, format='mp3')
         return beats
@@ -122,29 +125,33 @@ def create_beats_track(beats, click_gain_delta, output_file):
         silence.export(output_file, format='mp3')
 
 
-def main(audio_file, beats_file, output_file='audio_with_beats.mp3',
-         click_gain_delta=0, audio_gain_delta=0, split_beats=False):
+def main(beats_file, output_file='audio_with_beats.mp3', audio_file=None,
+         click_gain_delta=0, audio_gain_delta=0):
+
     with open(beats_file, 'r') as f:
         beats = beats_lines_to_beats(f.readlines())
-    beats = create_audio_with_beats(audio_file, beats, output_file,
-                                    click_gain_delta, audio_gain_delta,
-                                    split_beats)
-    if split_beats:
-        create_beats_track(beats, click_gain_delta, 'beats.mp3')
 
-if __name__ == '__main__':
+    if audio_file:
+        beats = create_audio_with_beats(audio_file, beats, output_file,
+                                        click_gain_delta, audio_gain_delta)
+    else:
+        create_beats_track(beats, click_gain_delta, output_file)
+
+
+def __main__():
     try:
         argv = FLAGS(sys.argv)  # parse flags
         if len(argv) < 2:
-            raise ValueError('No audio_file declared')
-        if len(argv) < 3:
             raise ValueError('No tht.beats file declared')
     except (ValueError, gflags.FlagsError), e:
-        print '%s\nUsage: %s ARGS audio_file tht_beats\n%s' % (e, sys.argv[0],
-                                                               FLAGS)
+        print '%s\nUsage: %s ARGS tht_beats\n%s' % (e, sys.argv[0], FLAGS)
         sys.exit(1)
 
-    main(argv[1], argv[2], FLAGS.output_file,
+    main(argv[1], FLAGS.output_file,
+         audio_file=FLAGS.audio_file,
          click_gain_delta=FLAGS.click_gain_delta,
-         audio_gain_delta=FLAGS.audio_gain_delta,
-         split_beats=FLAGS.split_beats)
+         audio_gain_delta=FLAGS.audio_gain_delta)
+
+
+if __name__ == '__main__':
+    __main__()

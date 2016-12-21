@@ -2,12 +2,15 @@
 
 from setuptools import setup
 
-setup(name='tht',
+setup(name='beats2audio',
       version='0.1',
-      description='Tactus Hypothesis Tracking Module',
+      description='Script for producing audio from .beats files',
       author='Martin "March" Miguel',
       author_email='m2.march@gmail.com',
-      packages=[],
+      packages=['scripts'],
+      package_data={
+          'scripts': ['click.mp3']
+      },
       install_requires=[
           'pydub',
           'python-gflags',
@@ -18,5 +21,9 @@ setup(name='tht',
       dependency_links=[
           '../tht'
       ],
-      scripts=['scripts/beats2audio.py']
+      entry_points={
+          'console_scripts': [
+              'beats2audio=scripts.beats2audio:__main__'
+          ]
+      }
       )
