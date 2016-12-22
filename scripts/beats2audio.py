@@ -10,7 +10,7 @@ import sys
 import tempfile
 import pkg_resources
 
-import tht.midi as midi
+import m2.midi as midi
 import numpy as np
 
 from pydub import AudioSegment
