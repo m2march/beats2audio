@@ -1,0 +1,70 @@
+#!/usr/bin/python
+'''
+Usage: beats2audio OPTS tht_beats
+
+Script that takes a .mid and .beats file and produces
+an audio file with the mid overlayed by a sound on each beat.
+'''
+
+import sys
+import gflags
+import m2.beats2audio as b2a
+from google.apputils import app
+
+
+gflags.DEFINE_string('output_file', 'audio_with_beats.mp3',
+                     'Name of the output audio file with beats.',
+                     short_name='o')
+
+gflags.DEFINE_integer('click_gain_delta', 0,
+                      'Gain delta for click track (in dB).',
+                      short_name='c')
+
+gflags.DEFINE_integer('audio_gain_delta', 0,
+                      'Gain delta for click track (in dB).',
+                      short_name='g')
+
+gflags.DEFINE_string('audio_file', None,
+                     ('Audio file to add as a background track '
+                      '(may be wav, mp3 or mid)'),
+                     short_name='a')
+
+FLAGS = gflags.FLAGS
+
+
+def beats2audio(beats_file, output_file='audio_with_beats.mp3',
+                audio_file=None, click_gain_delta=0, audio_gain_delta=0):
+
+    with open(beats_file, 'r') as f:
+        beats = b2a.beats_lines_to_beats(f.readlines())
+
+    if audio_file:
+        beats = b2a.adjust_beats_if_midi(audio_file, beats)
+
+        with b2a.open_audio(audio_file) as audio:
+            output_segment = b2a.create_audio_with_beats(
+                audio, beats, click_gain_delta, audio_gain_delta)
+            print 'Exporting to', output_file
+            output_segment.export(output_file, format='mp3')
+    else:
+        output_segment = b2a.create_beats_track(beats, click_gain_delta)
+        print 'Exporting beats to', output_file
+        output_segment.export(output_file, format='mp3')
+
+
+def main(argv):
+    if len(argv) < 2:
+        print >> sys.stderr, 'No tht.beats file declared'
+        print >> sys.stderr, ''
+        print >> sys.stderr, 'Usage: %s OPTS tht_beats' % argv[0]
+        print >> sys.stderr, FLAGS.GetHelp(include_special_flags=False)
+        exit()
+
+    beats2audio(argv[1], FLAGS.output_file,
+                audio_file=FLAGS.audio_file,
+                click_gain_delta=FLAGS.click_gain_delta,
+                audio_gain_delta=FLAGS.audio_gain_delta)
+
+
+if __name__ == '__main__':
+    app.run()

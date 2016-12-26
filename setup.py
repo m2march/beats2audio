@@ -4,26 +4,19 @@ from setuptools import setup
 
 setup(name='beats2audio',
       version='0.1',
-      description='Script for producing audio from .beats files',
+      description='Library for producing audios from beats',
       author='Martin "March" Miguel',
       author_email='m2.march@gmail.com',
-      packages=['scripts'],
+      packages=['m2.beats2audio'],
+      namespace_package=['m2'],
+      scripts=['scripts/beats2audio'],
       package_data={
-          'scripts': ['click.mp3']
+          'm2/beats2audio': ['click.mp3']
       },
       install_requires=[
           'pydub',
           'python-gflags',
           'python-magic',
           'numpy',
-          'tht'
       ],
-      dependency_links=[
-          '../tht'
-      ],
-      entry_points={
-          'console_scripts': [
-              'beats2audio=scripts.beats2audio:__main__'
-          ]
-      }
       )
