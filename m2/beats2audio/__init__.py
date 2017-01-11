@@ -86,9 +86,10 @@ def create_audio_with_beats(base_audio, beats,
     return audio_with_click
 
 
-def create_beats_track(beats, click_gain_delta=0):
+def create_beats_track(beats, click_gain_delta=0, min_duration=0):
     click = AudioSegment.from_mp3(CLICK_FILE)
     duration = beats[-1] + len(click)
+    duration = max(min_duration, duration)
     silence = AudioSegment.silent(duration=duration)
     for beat in beats:
         silence = silence.overlay(
