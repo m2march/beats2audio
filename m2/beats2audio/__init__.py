@@ -100,12 +100,11 @@ def create_beats_track(beats, click_gain_delta=0, min_duration=0):
     return silence
 
 
-def join_tracks(ta, tb, sep_gain_delta=0, sep_duration=None):
+def join_tracks(ta, tb, sep_gain_delta=0, left_padding=0, right_padding=400):
     separator = AudioSegment.from_mp3(SEP_FILE)
     separator = separator + sep_gain_delta
-    if sep_duration is not None:
-        silence = AudioSegment.silent(sep_duration)
-        final_sep = silence.overlay(separator)
-    else:
-        final_sep = separator
+    left_pad = AudioSegment.silent(left_padding)
+    right_pad = AudioSegment.silent(right_padding)
+    right_pad = right_pad.overlay(separator)
+    final_sep = left_pad + right_pad
     return ta + final_sep + tb
