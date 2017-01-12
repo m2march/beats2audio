@@ -14,6 +14,7 @@ from subprocess import call
 
 
 CLICK_FILE = pkg_resources.resource_filename(__name__, 'click.mp3')
+SEP_FILE = pkg_resources.resource_filename(__name__, 'separator.mp3')
 
 CLICK_OFFSET = 0
 
@@ -88,6 +89,7 @@ def create_audio_with_beats(base_audio, beats,
 
 def create_beats_track(beats, click_gain_delta=0, min_duration=0):
     click = AudioSegment.from_mp3(CLICK_FILE)
+    click = click + click_gain_delta
     duration = beats[-1] + len(click)
     duration = max(min_duration, duration)
     silence = AudioSegment.silent(duration=duration)
@@ -96,3 +98,14 @@ def create_beats_track(beats, click_gain_delta=0, min_duration=0):
             click, position=beat - CLICK_OFFSET)
 
     return silence
+
+
+def join_tracks(ta, tb, sep_gain_delta=0, sep_duration=None):
+    separator = AudioSegment.from_mp3(SEP_FILE)
+    separator = separator + sep_gain_delta
+    if sep_duration is not None:
+        silence = AudioSegment.silent(sep_duration)
+        final_sep = silence.overlay(separator)
+    else:
+        final_sep = separator
+    return ta + final_sep + tb
