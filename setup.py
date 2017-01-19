@@ -11,7 +11,7 @@ setup(name='beats2audio',
       namespace_package=['m2'],
       scripts=['scripts/beats2audio'],
       package_data={
-          'm2.beats2audio': ['m2/beats2audio/click.mp3']
+          'm2.beats2audio': ['m2/beats2audio/click.wav']
       },
       install_requires=[
           'pydub',

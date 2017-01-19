@@ -5,15 +5,17 @@ import magic
 import os
 import tempfile
 import pkg_resources
+import subprocess
 
 import m2.midi as midi
 import numpy as np
 
 from pydub import AudioSegment
 from subprocess import call
+from scipy.io import wavfile
 
 
-CLICK_FILE = pkg_resources.resource_filename(__name__, 'click.mp3')
+CLICK_FILE = pkg_resources.resource_filename(__name__, 'click.wav')
 SEP_FILE = pkg_resources.resource_filename(__name__, 'separator.mp3')
 
 CLICK_OFFSET = 0
@@ -100,11 +102,105 @@ def create_beats_track(beats, click_gain_delta=0, min_duration=0):
     return silence
 
 
-def join_tracks(ta, tb, sep_gain_delta=0, left_padding=0, right_padding=400):
-    separator = AudioSegment.from_mp3(SEP_FILE)
-    separator = separator + sep_gain_delta
+def join_tracks_w_sep(ts,
+                      left_padding=0, right_padding=400, dur=2000):
+    '''
+    Joins tracks with a separator.
+
+    Asumes all segments have same channel count and frame rate.
+
+    Args:
+        ta: list of AudioSegment to join
+        left_padding: ms of silence between ta and the separator
+        right_padding: ms of silence between the separator and tb
+        dur: duration in ms of the separator tone
+
+    Returns: joined audio segment
+    '''
+    # First we create the separator segment
+    final_sep = separator_segment(left_padding, right_padding, dur)
+
+    # We temporarily write the separator and all segments
+    sep_fn = tempfile.mkstemp(prefix='sep_', suffix='.wav')[1]
+    final_sep.export(sep_fn, 'wav')
+
+    def save_segment(i, s):
+        fn = tempfile.mkstemp(prefix='seg_', suffix='.wav')[1]
+        s.export(fn, 'wav')
+        return fn
+
+    segment_fns = [save_segment(i, s) for i, s in enumerate(ts)]
+
+    output_fn = tempfile.mkstemp(prefix='out_', suffix='.wav')[1]
+
+    # Joining with ffmpeg
+    list_file = tempfile.mkstemp(suffix='.list')[1]
+    with open(list_file, 'w') as f:
+        fmt = 'file {}\n'
+        f.write(fmt.format(segment_fns[0]))
+        for fn in segment_fns[1:]:
+            f.write(fmt.format(sep_fn))
+            f.write(fmt.format(fn))
+
+    concatenate_cmd = ['ffmpeg', '-y', '-f', 'concat', '-safe', '0']
+    concatenate_cmd.extend(['-i', list_file])
+    concatenate_cmd.extend(['-c', 'copy', output_fn])
+
+    subprocess.Popen(concatenate_cmd).communicate()
+
+    ret_seg = AudioSegment.from_file(output_fn)
+
+    # Cleanup
+    os.remove(sep_fn)
+    os.remove(output_fn)
+    for fn in segment_fns:
+        os.remove(fn)
+
+    return ret_seg
+
+
+def separator_segment(left_padding=1000, right_padding=1000, dur=1000):
+    # First we create the separator segment
+    separator_tone = separator_sound_segment(dur)
+
     left_pad = AudioSegment.silent(left_padding)
     right_pad = AudioSegment.silent(right_padding)
-    right_pad = right_pad.overlay(separator)
-    final_sep = left_pad + right_pad
-    return ta + final_sep + tb
+    final_sep = left_pad + separator_tone + right_pad
+    return final_sep
+
+
+def create_separator_sound(dur, f=354.0,
+                           noise_sigma=0.1, sr=48000, channels=2,
+                           volume=0.5, fn=None):
+    '''
+    Creates a tone of frequency _f_ with gaussian noise of _dur_ ms.
+
+    Returns a (sr * dur, channels) numpy array
+    '''
+    fd = np.sin(volume * 2 * np.pi *
+                np.arange(int(sr * dur / 1000.0)) * f/sr).astype(np.float32)
+
+    if noise_sigma and noise_sigma != 0.0:
+        noise = np.random.normal(0, volume * noise_sigma, fd.size)
+        fd = fd + noise
+
+    fd = (np.zeros((channels, 1)) + fd).astype(np.float32)
+
+    return fd.T
+
+
+def separator_sound_segment(dur, f=354.0,
+                            noise_sigma=0.05, sr=44100,
+                            channels=2):
+    a = create_separator_sound(dur, f, noise_sigma, sr, channels)
+    with tempfile.NamedTemporaryFile() as f:
+        wavfile.write(f.name, sr, a)
+        seg = AudioSegment.from_file(f.name)
+    return seg
+
+
+# Low level functions
+
+def segment_to_np_array(s):
+    na = np.array(s.get_array_of_samples())
+    return na.reshape((s.frame_count(), s.channels))
