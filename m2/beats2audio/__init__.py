@@ -190,7 +190,7 @@ def create_separator_sound(dur, f=354.0,
 
 
 def separator_sound_segment(dur, f=354.0,
-                            noise_sigma=0.05, sr=44100,
+                            noise_sigma=0.05, sr=48000,
                             channels=2):
     a = create_separator_sound(dur, f, noise_sigma, sr, channels)
     with tempfile.NamedTemporaryFile() as f:
