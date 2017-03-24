@@ -9,7 +9,7 @@ setup(name='beats2audio',
       author_email='m2.march@gmail.com',
       packages=['m2.beats2audio'],
       namespace_package=['m2'],
-      scripts=['scripts/beats2audio'],
+      scripts=['scripts/beats2audio', 'scripts/play_w_silence'],
       package_data={
           'm2.beats2audio': ['m2/beats2audio/click.wav']
       },
