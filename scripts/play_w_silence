@@ -12,7 +12,7 @@ from subprocess import Popen, PIPE
 from google.apputils import app
 
 
-gflags.DEFINE_integer('wait', 1,
+gflags.DEFINE_integer('wait', 0,
                       ('Duration of the silence between files (in seconds) '
                        'Special value 0 means wait for user input.'),
                       short_name='w')
