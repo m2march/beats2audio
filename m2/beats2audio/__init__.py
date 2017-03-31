@@ -102,6 +102,12 @@ def create_beats_track(beats, click_gain_delta=0, min_duration=0):
     return silence
 
 
+def create_beats_mp3(beats, output_filename, click_gain_delta=0,
+                     min_duration=0):
+    seg = create_beats_track(beats, click_gain_delta, min_duration)
+    seg.export(output_filename, format='mp3')
+
+
 def join_tracks_w_sep(ts,
                       left_padding=0, right_padding=400, dur=2000):
     '''
