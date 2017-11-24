@@ -183,14 +183,14 @@ def separator_segment(left_padding=1000, right_padding=1000, dur=1000):
 
 def create_separator_sound(dur, f=354.0,
                            noise_sigma=0.1, sr=48000, channels=2,
-                           volume=0.5, fn=None):
+                           volume=0.1, fn=None):
     '''
     Creates a tone of frequency _f_ with gaussian noise of _dur_ ms.
 
     Returns a (sr * dur, channels) numpy array
     '''
-    fd = np.sin(volume * 2 * np.pi *
-                np.arange(int(sr * dur / 1000.0)) * f/sr).astype(np.float32)
+    fd = (volume * np.sin(2 * np.pi *
+                np.arange(int(sr * dur / 1000.0)) * f/sr)).astype(np.float32)
 
     if noise_sigma and noise_sigma != 0.0:
         noise = np.random.normal(0, volume * noise_sigma, fd.size)
