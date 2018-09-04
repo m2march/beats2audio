@@ -203,8 +203,8 @@ def create_separator_sound(dur, f=354.0,
 
 def separator_sound_segment(dur, f=354.0,
                             noise_sigma=0.05, sr=48000,
-                            channels=2):
-    a = create_separator_sound(dur, f, noise_sigma, sr, channels)
+                            channels=2, volume=0.1):
+    a = create_separator_sound(dur, f, noise_sigma, sr, channels, volume=volume)
     with tempfile.NamedTemporaryFile() as f:
         wavfile.write(f.name, sr, a)
         seg = AudioSegment.from_file(f.name)
