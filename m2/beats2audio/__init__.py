@@ -44,9 +44,9 @@ class open_audio:
 
     def __enter__(self):
         if magic.from_file(self.audio_file, mime=True) == 'audio/midi':
-            print 'Midi found. Converting to wav.'
+            print('Midi found. Converting to wav.')
             with tempfile.NamedTemporaryFile('rw') as temp:
-                print temp.name
+                print(temp.name)
                 call(['timidity', '-Ow', '-o',
                       temp.name, self.audio_file])
                 self.is_midi = True
@@ -76,7 +76,7 @@ def create_audio_with_beats(base_audio, beats,
     try:
         click = AudioSegment.from_mp3(CLICK_FILE)
     except Exception as e:
-        print e, CLICK_FILE
+        print(e, CLICK_FILE)
         exit()
 
     base_audio = base_audio + audio_gain_delta
