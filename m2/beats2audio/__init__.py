@@ -16,10 +16,88 @@ from scipy.io import wavfile
 
 
 CLICK_FILE = pkg_resources.resource_filename(__name__, 'click.wav')
+CLICK_MAX_DELAY = 1.72
 SEP_FILE = pkg_resources.resource_filename(__name__, 'separator.mp3')
+
+ACCEPTABLE_MP3_SAMPLE_RATES = [22050, 44100, 48000]
 
 CLICK_OFFSET = 0
 
+# Main beats2track functions
+
+def create_beats_track(beats, click_gain_delta=0, min_duration=0):
+    """
+    Creates an AudioSegment with clicks in beats positions.
+
+    Params:
+        beats: moment of click sounds in milliseconds
+        click_gain_delta: gain to apply to click sound in dB
+        min_duration: minimun duration of the audio. If beats end sounding 
+            before min_duration, the audio is filled with silence until the
+            duration is reached
+
+    Returns:
+        pydub.AudioSegment with identical click sounds in each time defined in 
+        `beats` during at least `min_duration`.
+    """
+    click = AudioSegment.from_mp3(CLICK_FILE)
+    click = click + click_gain_delta
+    duration = beats[-1] + len(click)
+    duration = max(min_duration, duration)
+    silence = AudioSegment.silent(duration=duration)
+    for beat in beats:
+        silence = silence.overlay(
+            click, position=beat - CLICK_OFFSET)
+
+    return silence
+
+
+def create_beats_audio(beats, output_filename, format,
+                       click_gain_delta=0, min_duration=0,
+                       sample_rate=48000):
+    """
+    Creates an audio file with click positions at `beats`.
+
+    Params:
+        beats: position of clicks in milliseconds
+        output_filename: name of the output file
+        format: audio format of the output file (e.g.: "mp3", "wav")
+        click_gain_delta: gain to apply to click sound in dB
+        min_duration: minimun duration of the audio. 
+        sample_rate: sample rate used in the output file
+
+    Returns:
+        None, file is created as a side effect
+    """
+    seg = create_beats_track(beats, click_gain_delta, min_duration)
+    seg.set_frame_rate(sample_rate).export(output_filename, format=format)
+
+
+def create_beats_mp3(beats, output_filename, click_gain_delta=0,
+                     min_duration=0, sample_rate=48000):
+    """
+    Creates mp3 file with click position at `beats`.
+
+    See `create_beats_audio` for more detail.
+    """
+    create_beats_audio(beats, output_filename, 'mp3',
+                       click_gain_delta, min_duration,
+                       sample_rate)
+
+
+def create_beats_wav(beats, output_filename, click_gain_delta=0,
+                     min_duration=0, sample_rate=48000):
+    """
+    Creates wav file with click position at `beats`.
+
+    See `create_beats_audio` for more detail.
+    """
+    create_beats_audio(beats, output_filename, 'wav',
+                       click_gain_delta, min_duration,
+                       sample_rate)
+
+
+# Other functionalities
 
 def beats_lines_to_beats(beats_lines):
     '''
@@ -34,7 +112,8 @@ def beats_lines_to_beats(beats_lines):
 
 
 class open_audio:
-    '''Open an audio file and returns an pydub.AudioSegment.
+    '''
+    Open an audio file and returns an pydub.AudioSegment.
 
     Supports standard audio files and also midis.
     '''
@@ -89,29 +168,6 @@ def create_audio_with_beats(base_audio, beats,
     return audio_with_click
 
 
-def create_beats_track(beats, click_gain_delta=0, min_duration=0):
-    click = AudioSegment.from_mp3(CLICK_FILE)
-    click = click + click_gain_delta
-    duration = beats[-1] + len(click)
-    duration = max(min_duration, duration)
-    silence = AudioSegment.silent(duration=duration)
-    for beat in beats:
-        silence = silence.overlay(
-            click, position=beat - CLICK_OFFSET)
-
-    return silence
-
-
-def create_beats_mp3(beats, output_filename, click_gain_delta=0,
-                     min_duration=0):
-    seg = create_beats_track(beats, click_gain_delta, min_duration)
-    seg.export(output_filename, format='mp3')
-
-
-def create_beats_wav(beats, output_filename, click_gain_delta=0,
-                     min_duration=0):
-    seg = create_beats_track(beats, click_gain_delta, min_duration)
-    seg.export(output_filename, format='wav')
 
 
 def join_tracks_w_sep(ts,

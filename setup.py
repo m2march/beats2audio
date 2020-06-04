@@ -9,7 +9,9 @@ setup(name='beats2audio',
       author_email='m2.march@gmail.com',
       packages=['m2', 'm2.beats2audio'],
       namespace_packages=['m2'],
-      scripts=['scripts/beats2audio', 'scripts/play_w_silence'],
+      entry_points={
+          'console_scripts': ['beats2audio=m2.beats2audio.cli:main']
+      },
       package_data={
           'm2.beats2audio': ['m2/beats2audio/click.wav']
       },

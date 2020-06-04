@@ -1,0 +1,78 @@
+#!/usr/bin/python
+'''
+Usage: beats2audio OPTS tht_beats
+
+Script that takes a .mid and .beats file and produces
+an audio file with the mid overlayed by a sound on each beat.
+'''
+
+import sys
+import numpy as np
+import m2.beats2audio as b2a
+import gflags
+from absl import app, flags
+
+
+flags.DEFINE_string('output_file', 'audio_with_beats.mp3',
+                    'Name of the output audio file with beats.',
+                    short_name='o')
+
+flags.DEFINE_integer('click_gain_delta', 0,
+                     'Gain delta for click track (in dB).',
+                     short_name='c')
+
+flags.DEFINE_integer('audio_gain_delta', 0,
+                     'Gain delta for click track (in dB).',
+                     short_name='g')
+
+flags.DEFINE_string('audio_file', None, 
+                    ('Audio file to add as a background track ' 
+                     '(may be wav, mp3 or mid)'), short_name='a')
+
+flags.DEFINE_boolean('s_to_ms', False,
+                     'Input is in seconds. Convert to milliseconds')
+
+FLAGS = flags.FLAGS
+
+
+def beats2audio(beats_file, output_file='audio_with_beats.mp3',
+                audio_file=None, click_gain_delta=0, audio_gain_delta=0,
+                s_to_ms=False):
+
+    with open(beats_file, 'r') as f:
+        beats = b2a.beats_lines_to_beats(f.readlines())
+
+    if (s_to_ms):
+        beats = np.array(beats) * 1000
+
+    if audio_file:
+        beats = b2a.adjust_beats_if_midi(audio_file, beats)
+
+        with b2a.open_audio(audio_file) as audio:
+            output_segment = b2a.create_audio_with_beats(
+                audio, beats, click_gain_delta, audio_gain_delta)
+            print('Exporting to', output_file)
+            output_segment.export(output_file, format='mp3')
+    else:
+        output_segment = b2a.create_beats_track(beats, click_gain_delta)
+        print('Exporting beats to', output_file)
+        output_segment.export(output_file, format='mp3')
+
+
+def main(argv):
+    if len(argv) < 2:
+        print('No tht.beats file declared', file=sys.stderr)
+        print('', file=sys.stderr)
+        print('Usage: %s OPTS tht_beats' % argv[0], file=sys.stderr)
+        print(FLAGS.GetHelp(include_special_flags=False), file=sys.stderr)
+        exit()
+
+    beats2audio(argv[1], FLAGS.output_file,
+                audio_file=FLAGS.audio_file,
+                click_gain_delta=FLAGS.click_gain_delta,
+                audio_gain_delta=FLAGS.audio_gain_delta,
+                s_to_ms=FLAGS.s_to_ms)
+
+
+if __name__ == '__main__':
+    app.run(main)
