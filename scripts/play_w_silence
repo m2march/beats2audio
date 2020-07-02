@@ -1,0 +1,54 @@
+#!/usr/bin/python
+'''
+Usage: play_w_silence audio1 audio2 ... audioN
+
+Utility to playback several audio files with silence between them.
+'''
+import glob
+import gflags
+import re
+import time
+from subprocess import Popen, PIPE
+from google.apputils import app
+
+
+gflags.DEFINE_integer('wait', 0,
+                      ('Duration of the silence between files (in seconds) '
+                       'Special value 0 means wait for user input.'),
+                      short_name='w')
+
+gflags.DEFINE_string('sort_regex', None,
+                     ('Regex with one group that extracts a index used for '
+                      'sorting'),
+                     short_name='s')
+
+
+FLAGS = gflags.FLAGS
+
+
+def main(argv):
+    files = [fn for pattern in argv[1:] for fn in glob.glob(pattern)]
+    if not files:
+        print 'No files specified.'
+        exit()
+
+    if FLAGS.sort_regex:
+        files_sidx = [(f, int(re.search(FLAGS.sort_regex, f).groups()[0]))
+                      for f in files]
+        s_files = [f for f, sidx in sorted(files_sidx, key=lambda x: x[1])]
+    else:
+        s_files = files
+
+    for f in s_files:
+        print f
+        proc = Popen(['mplayer', f], stdout=PIPE)
+        proc.communicate()
+        proc.wait()
+        if FLAGS.wait == 0:
+            raw_input('Enter to continue...')
+        else:
+            time.sleep(FLAGS.wait)
+
+
+if __name__ == '__main__':
+    app.run()
