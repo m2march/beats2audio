@@ -3,5 +3,5 @@ python-gflags
 python-magic
 numpy
 scipy
-git+git@github.com:m2march/python-midi#egg=python-midi
-git+git@github.com:m2march/midi#egg=midi
+m2-python-midi @ git+https://github.com/m2march/python-midi@master#egg=m2-python-midi
+m2-midi @ git+https://github.com/m2march/midi@master#egg=m2-midi
