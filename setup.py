@@ -14,7 +14,7 @@ def parse_requirements(filename):
     return [line for line in lineiter if line and not
             line.startswith("#")]
 
-setup(name='beats2audio',
+setup(name='m2-beats2audio',
       version='0.9',
       description='Library for producing audios from beats',
       long_description=README,
