@@ -9,7 +9,7 @@ Measuring Timed Responses to Auditory Stimuli", Miguel. et al. (under review).
 
 ## Installation
 
-* From pypi:
+* From pypi (requires pip >= 20.0.1):
 
 ```
     pip install m2-beats2audio
