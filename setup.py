@@ -1,10 +1,19 @@
 #!/usr/bin/env python
-
+import pathlib
 from setuptools import setup
 
+# The directory containing this file
+HERE = pathlib.Path(__file__).parent
+
+# The text of the README file
+README = (HERE / "README.md").read_text()
+
 setup(name='beats2audio',
-      version='0.1',
+      version='0.9',
       description='Library for producing audios from beats',
+      long_description=README,
+      long_description_content_type='text/markdown',
+      url='https://github.com/m2march/beats2audio',
       author='Martin "March" Miguel',
       author_email='m2.march@gmail.com',
       packages=['m2', 'm2.beats2audio'],
@@ -20,5 +29,8 @@ setup(name='beats2audio',
           'python-gflags',
           'python-magic',
           'numpy',
+          'scipy',
+          'm2-midi',
       ],
-      )
+      license='MIT',
+)
