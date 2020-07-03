@@ -1,0 +1,7 @@
+pydub
+python-gflags
+python-magic
+numpy
+scipy
+git+git@github.com:m2march/python-midi#egg=python-midi
+git+git@github.com:m2march/midi#egg=midi

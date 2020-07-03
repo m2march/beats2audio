@@ -8,6 +8,12 @@ HERE = pathlib.Path(__file__).parent
 # The text of the README file
 README = (HERE / "README.md").read_text()
 
+def parse_requirements(filename):
+    """Load requirements from a pip requirements file."""
+    lineiter = (line.strip() for line in open(filename))
+    return [line for line in lineiter if line and not
+            line.startswith("#")]
+
 setup(name='beats2audio',
       version='0.9',
       description='Library for producing audios from beats',
@@ -24,13 +30,6 @@ setup(name='beats2audio',
       package_data={
           'm2.beats2audio': ['m2/beats2audio/click.wav']
       },
-      install_requires=[
-          'pydub',
-          'python-gflags',
-          'python-magic',
-          'numpy',
-          'scipy',
-          'm2-midi',
-      ],
+      install_requires=parse_requirements('requirements.txt'),
       license='MIT',
 )
