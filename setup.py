@@ -27,9 +27,7 @@ setup(name='beats2audio',
       entry_points={
           'console_scripts': ['beats2audio=m2.beats2audio.cli:main']
       },
-      package_data={
-          'm2.beats2audio': ['m2/beats2audio/click.wav']
-      },
+      include_package_data=True,
       install_requires=parse_requirements('requirements.txt'),
       license='MIT',
 )

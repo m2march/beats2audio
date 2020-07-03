@@ -7,7 +7,6 @@ import tempfile
 import pkg_resources
 import subprocess
 
-import m2.midi as midi
 import numpy as np
 
 from pydub import AudioSegment
@@ -123,6 +122,7 @@ class open_audio:
 
     def __enter__(self):
         if magic.from_file(self.audio_file, mime=True) == 'audio/midi':
+            import m2.midi as midi
             print('Midi found. Converting to wav.')
             with tempfile.NamedTemporaryFile('rw') as temp:
                 print(temp.name)
@@ -141,6 +141,7 @@ class open_audio:
 def adjust_beats_if_midi(audio_file, beats):
     audio_file = os.path.realpath(audio_file)
     if magic.from_file(audio_file, mime=True) == 'audio/midi':
+        import m2.midi as midi
         onsets = midi.midi_to_collapsed_onset_times(audio_file)
         beats = np.array(beats)
         return beats - onsets[0]
