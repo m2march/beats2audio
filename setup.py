@@ -8,11 +8,13 @@ HERE = pathlib.Path(__file__).parent
 # The text of the README file
 README = (HERE / "README.md").read_text()
 
+
 def parse_requirements(filename):
     """Load requirements from a pip requirements file."""
     lineiter = (line.strip() for line in open(filename))
     return [line for line in lineiter if line and not
             line.startswith("#")]
+
 
 setup(name='m2-beats2audio',
       version='0.9',
