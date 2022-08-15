@@ -152,9 +152,12 @@ def adjust_beats_if_midi(audio_file, beats):
 def create_audio_with_beats(base_audio, beats,
                             click_gain_delta=0,
                             audio_gain_delta=0,
-                            split_beats=False):
+                            split_beats=False,
+                            click_file=None
+                           ):
     try:
-        click = AudioSegment.from_mp3(CLICK_FILE)
+        click = AudioSegment.from_mp3(CLICK_FILE if click_file is None else
+                                      click_file)
     except Exception as e:
         print(e, CLICK_FILE)
         exit()
