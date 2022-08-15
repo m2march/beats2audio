@@ -3,8 +3,7 @@
 `beats2audio` is an utility to create audio files with clicks at designated 
 onset times as provided in a configuration file. Onset times are specified in
 a text file defining one location per line, in milliseconds. This utility was
-developed in the context of the publication "Simple and Cheap Setup for 
-Measuring Timed Responses to Auditory Stimuli", Miguel. et al. (under review).
+developed in the context of the publication _"A simple and cheap setup for timing tapping responses synchronized to auditory stimuli."_ (Miguel, M.A., Riera, P. & Slezak, D.F.  Behav Res (2021). https://doi.org/10.3758/s13428-021-01653-y). 
 
 
 ## Installation
