@@ -3,3 +3,4 @@ python-gflags
 python-magic
 numpy
 scipy
+python-magic-bin==0.4.14

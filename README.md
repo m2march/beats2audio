@@ -8,6 +8,12 @@ developed in the context of the publication _"A simple and cheap setup for timin
 
 ## Installation
 
+### Non-pip Requirements
+
+* conda install pyaudio
+
+### Instructions
+
 * From pypi:
 
 ```
